@@ -1,0 +1,154 @@
+import tkinter
+import random  
+
+ROWS = 30
+COLS = 30
+TILE_SIZE = 20
+
+WINDOW_WIDTH = TILE_SIZE * COLS
+WINDOW_HEIGHT = TILE_SIZE * ROWS
+
+class Tile:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+# game window
+window = tkinter.Tk()
+window.title("Snake")
+window.resizable(False, False)
+
+canvas = tkinter.Canvas(window, bg="blue", width=WINDOW_WIDTH, height=WINDOW_HEIGHT, borderwidth=0, highlightthickness=0)
+canvas.pack()
+window.update()
+
+# center the window
+window_width = window.winfo_width()
+window_height = window.winfo_height()
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+
+window_x = int((screen_width / 2) - (window_width / 2))
+window_y = int((screen_height / 2) - (window_height / 2))
+
+# format "(w)x(h)+(x)+(y)"
+window.geometry(f"{window_width}x{window_height}+{window_x}+{window_y}")
+
+# initialize game
+snake = Tile(TILE_SIZE * 5, TILE_SIZE * 5)  # single tile, snake's head
+food = Tile(TILE_SIZE * 10, TILE_SIZE * 10)
+big_food = None
+velocityX = 0
+velocityY = 0
+snake_body = []  # multiple snake tiles
+game_over = False
+score = 0
+food_counter = 0
+
+# game loop
+def change_direction(e):  # e = event
+    global velocityX, velocityY, game_over
+    if game_over:
+        return  # edit this code to reset game variables to play again
+
+    if e.keysym == "Up" and velocityY != 1:
+        velocityX = 0
+        velocityY = -1
+
+    elif e.keysym == "Down" and velocityY != -1:
+        velocityX = 0
+        velocityY = 1
+
+    elif e.keysym == "Left" and velocityX != 1:
+        velocityX = -1
+        velocityY = 0
+
+    elif e.keysym == "Right" and velocityX != -1:
+        velocityX = 1
+        velocityY = 0
+
+
+def move():
+    global snake, food, big_food, snake_body, game_over, score, food_counter
+    if game_over:
+        return
+
+    # Wrap around the screen
+    if snake.x < 0:
+        snake.x = WINDOW_WIDTH - TILE_SIZE
+    elif snake.x >= WINDOW_WIDTH:
+        snake.x = 0
+    if snake.y < 0:
+        snake.y = WINDOW_HEIGHT - TILE_SIZE
+    elif snake.y >= WINDOW_HEIGHT:
+        snake.y = 0
+
+    for tile in snake_body:
+        if snake.x == tile.x and snake.y == tile.y:
+            game_over = True
+            return
+
+    # collision with regular food
+    if snake.x == food.x and snake.y == food.y:
+        snake_body.append(Tile(food.x, food.y))
+        food.x = random.randint(0, COLS - 1) * TILE_SIZE
+        food.y = random.randint(0, ROWS - 1) * TILE_SIZE
+        score += 1
+        food_counter += 1
+
+        # spawn big food after eating 3 regular foods
+        if food_counter == 3:
+            big_food = Tile(random.randint(0, COLS - 1) * TILE_SIZE, random.randint(0, ROWS - 1) * TILE_SIZE)
+            food_counter = 0
+
+    # collision with big food
+    if big_food and snake.x == big_food.x and snake.y == big_food.y:
+        for _ in range(len(snake_body)):
+            snake_body.append(Tile(snake.x, snake.y))
+        big_food = None
+        score += 3
+
+    # update snake body
+    for i in range(len(snake_body) - 1, -1, -1):
+        tile = snake_body[i]
+        if i == 0:
+            tile.x = snake.x
+            tile.y = snake.y
+        else:
+            prev_tile = snake_body[i - 1]
+            tile.x = prev_tile.x
+            tile.y = prev_tile.y
+
+    snake.x += velocityX * TILE_SIZE
+    snake.y += velocityY * TILE_SIZE
+
+
+def draw():
+    global snake, food, big_food, snake_body, game_over, score
+    move()
+
+    canvas.delete("all")
+
+    # draw food
+    canvas.create_oval(food.x, food.y, food.x + TILE_SIZE, food.y + TILE_SIZE, fill='green')
+
+    # draw big food
+    if big_food:
+        canvas.create_oval(big_food.x, big_food.y, big_food.x + TILE_SIZE, big_food.y + TILE_SIZE, fill='red')
+
+    # draw snake
+    canvas.create_rectangle(snake.x, snake.y, snake.x + TILE_SIZE, snake.y + TILE_SIZE, fill='brown')
+
+    for tile in snake_body:
+        canvas.create_rectangle(tile.x, tile.y, tile.x + TILE_SIZE, tile.y + TILE_SIZE, fill='green')
+
+    if game_over:
+        canvas.create_text(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, font="Ninja", text=f"Your Score : {score}", fill="black")
+    else:
+        canvas.create_text(30, 20, font="Arial 10", text=f"Score: {score}", fill="white")
+
+    window.after(250, draw)  # call draw again every 250ms (4 frames per second)
+
+draw()
+window.bind("<KeyRelease>", change_direction)  # when you press on any key and then let go
+window.mainloop()  # used for listening to window events like key presses
