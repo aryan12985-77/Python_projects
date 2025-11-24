@@ -2,7 +2,7 @@
 
 This repository holds the Python projects I built during a 10 day hands on seminar in my college. The program focused on re engineering practices and helped me move from basic concepts to practical problem solving.
 
-What this repo includes
+#What this repo includes
 
 Small practice scripts
 
@@ -12,7 +12,7 @@ Exercises that cover logic building
 
 Assignments that apply core Python skills
 
-Skills covered
+#Skills covered
 
 Variables and data types
 
@@ -28,11 +28,11 @@ Simple algorithms
 
 Debugging and clean code habits
 
-Purpose
+#Purpose
 
 This repo is a record of my learning journey. I will keep adding new files as I improve and try new ideas.
 
-How to use
+#How to use
 
 Clone the repo
 
